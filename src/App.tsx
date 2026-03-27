@@ -16,6 +16,10 @@ import AdminProducts from "./pages/admin/AdminProducts.tsx";
 import AdminOrders from "./pages/admin/AdminOrders.tsx";
 import AdminCustomers from "./pages/admin/AdminCustomers.tsx";
 import AdminActivityLog from "./pages/admin/AdminActivityLog.tsx";
+import AdminInventory from "./pages/admin/AdminInventory.tsx";
+import AdminDiscounts from "./pages/admin/AdminDiscounts.tsx";
+import AdminReviews from "./pages/admin/AdminReviews.tsx";
+import AdminSupport from "./pages/admin/AdminSupport.tsx";
 import AdminSettings from "./pages/admin/AdminSettings.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -60,9 +64,13 @@ const App = () => (
                       <Route index element={<AdminDashboard />} />
                       <Route path="analytics" element={<AdminAnalytics />} />
                       <Route path="products" element={<AdminProducts />} />
+                      <Route path="inventory" element={<AdminInventory />} />
                       <Route path="categories" element={<AdminCategories />} />
+                      <Route path="discounts" element={<AdminDiscounts />} />
                       <Route path="orders" element={<AdminOrders />} />
                       <Route path="customers" element={<AdminCustomers />} />
+                      <Route path="reviews" element={<AdminReviews />} />
+                      <Route path="support" element={<AdminSupport />} />
                       <Route path="activity" element={<AdminActivityLog />} />
                       <Route path="settings" element={<AdminSettings />} />
                     </Route>

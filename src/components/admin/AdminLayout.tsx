@@ -17,6 +17,10 @@ import {
   Tags,
   ExternalLink,
   ChevronRight as ChevronRightIcon,
+  Archive,
+  Ticket,
+  Star as StarIcon,
+  MessageSquare,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -39,8 +43,12 @@ const adminLinks = [
   { name: "Analytics", path: "/admin/analytics", icon: BarChart3 },
   { name: "Orders", path: "/admin/orders", icon: ShoppingCart },
   { name: "Products", path: "/admin/products", icon: Package },
+  { name: "Inventory", path: "/admin/inventory", icon: Archive },
   { name: "Categories", path: "/admin/categories", icon: Tags },
+  { name: "Discounts", path: "/admin/discounts", icon: Ticket },
   { name: "Customers", path: "/admin/customers", icon: Users },
+  { name: "Reviews", path: "/admin/reviews", icon: StarIcon },
+  { name: "Support", path: "/admin/support", icon: MessageSquare },
   { name: "Activity", path: "/admin/activity", icon: Activity },
   { name: "Settings", path: "/admin/settings", icon: Settings },
 ];

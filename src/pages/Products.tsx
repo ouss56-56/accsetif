@@ -5,6 +5,7 @@ import Navbar from "@/components/storefront/Navbar";
 import Footer from "@/components/storefront/Footer";
 import WhatsAppButton from "@/components/storefront/WhatsAppButton";
 import ProductCard from "@/components/storefront/ProductCard";
+import ProductSkeleton from "@/components/storefront/ProductSkeleton";
 import { useProducts, useCategories } from "@/hooks/useProducts";
 import { Button } from "@/components/ui/button";
 
@@ -93,20 +94,28 @@ const Products = () => {
           </div>
 
           {/* Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filtered.map((product, i) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: i * 0.05 }}
-              >
-                <ProductCard product={product} />
-              </motion.div>
-            ))}
-          </div>
+          {prodLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <ProductSkeleton key={i} />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filtered.map((product, i) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: i * 0.05 }}
+                >
+                  <ProductCard product={product} />
+                </motion.div>
+              ))}
+            </div>
+          )}
 
-          {filtered.length === 0 && (
+          {!prodLoading && filtered.length === 0 && (
             <div className="text-center py-20">
               <p className="text-muted-foreground text-lg">No products found in this category.</p>
             </div>

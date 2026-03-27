@@ -38,9 +38,17 @@ const AboutSection = () => {
                 { value: "500+", label: "Unique Pieces" },
                 { value: "10K+", label: "Happy Clients" },
                 { value: "5★", label: "Rated Service" },
-              ].map((stat) => (
+              ].map((stat, i) => (
                 <div key={stat.label}>
-                  <p className="text-3xl font-serif font-bold text-primary">{stat.value}</p>
+                  <motion.p 
+                    initial={{ opacity: 0, y: 15 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.2 + i * 0.1 }}
+                    className="text-3xl font-serif font-bold text-primary"
+                  >
+                    {stat.value}
+                  </motion.p>
                   <p className="text-muted-foreground text-sm mt-1">{stat.label}</p>
                 </div>
               ))}

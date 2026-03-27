@@ -1,23 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MessageCircle, ShieldCheck, Truck, RotateCcw, Plus, Minus, ShoppingBag } from "lucide-react";
+import { ArrowLeft, MessageCircle, ShieldCheck, Truck, RotateCcw, Plus, Minus, ShoppingBag, Heart } from "lucide-react";
 import Navbar from "@/components/storefront/Navbar";
 import Footer from "@/components/storefront/Footer";
 import WhatsAppButton from "@/components/storefront/WhatsAppButton";
 import ProductCard from "@/components/storefront/ProductCard";
+import RecentlyViewed from "@/components/storefront/RecentlyViewed";
 import { useProduct, useProducts } from "@/hooks/useProducts";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
+import { useRecentlyViewed } from "@/context/RecentlyViewedContext";
 
 const WHATSAPP_NUMBER = "15551234567";
+
+const tabData = [
+  { key: "description", label: "Description" },
+  { key: "shipping", label: "Shipping & Returns" },
+  { key: "reviews", label: "Reviews" },
+];
 
 const ProductDetail = () => {
   const { id } = useParams();
   const { data: product, isLoading } = useProduct(id || "");
   const { data: products } = useProducts(product?.categories?.name);
   const { addToCart } = useCart();
+  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const { addToRecentlyViewed } = useRecentlyViewed();
   const [quantity, setQuantity] = useState(1);
+  const [activeTab, setActiveTab] = useState("description");
+
+  // Track recently viewed
+  useEffect(() => {
+    if (id) addToRecentlyViewed(id);
+  }, [id, addToRecentlyViewed]);
 
   if (isLoading) {
     return (
@@ -41,6 +58,8 @@ const ProductDetail = () => {
       </div>
     );
   }
+
+  const inWishlist = isInWishlist(product.id);
 
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     `Hi! I'm interested in the "${product.name}" ($${product.price.toFixed(2)}) from Boutique Chic.`
@@ -141,6 +160,18 @@ const ProductDetail = () => {
                           <Plus className="h-4 w-4" />
                         </button>
                       </div>
+
+                      {/* Wishlist button */}
+                      <button
+                        onClick={() => inWishlist ? removeFromWishlist(product.id) : addToWishlist(product)}
+                        className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-all ${
+                          inWishlist
+                            ? "bg-red-500/10 border-red-500/30 text-red-500"
+                            : "border-border text-muted-foreground hover:text-red-500 hover:border-red-500/30"
+                        }`}
+                      >
+                        <Heart className={`h-5 w-5 ${inWishlist ? "fill-current" : ""}`} />
+                      </button>
                     </div>
                   )}
 
@@ -190,7 +221,138 @@ const ProductDetail = () => {
             </motion.div>
           </div>
 
-          {/* Related */}
+          {/* Product Tabs */}
+          <div className="mt-20">
+            <div className="flex border-b border-border gap-0">
+              {tabData.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`px-6 py-4 text-sm font-medium transition-all relative ${
+                    activeTab === tab.key
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab.label}
+                  {activeTab === tab.key && (
+                    <motion.div
+                      layoutId="product-tab-indicator"
+                      className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="py-8">
+              {activeTab === "description" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="max-w-3xl space-y-4"
+                >
+                  <p className="text-foreground/80 leading-relaxed text-lg">
+                    {product.description}
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-6 mt-8">
+                    <div className="bg-gradient-card rounded-xl border border-border p-6">
+                      <h4 className="font-serif font-bold text-foreground mb-2">Quality Materials</h4>
+                      <p className="text-muted-foreground text-sm">
+                        Crafted with premium materials selected for durability and timeless beauty. Each piece undergoes rigorous quality checks.
+                      </p>
+                    </div>
+                    <div className="bg-gradient-card rounded-xl border border-border p-6">
+                      <h4 className="font-serif font-bold text-foreground mb-2">Artisan Craftsmanship</h4>
+                      <p className="text-muted-foreground text-sm">
+                        Handcrafted by skilled artisans with decades of experience, ensuring every detail meets our exacting standards.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === "shipping" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="max-w-3xl space-y-6"
+                >
+                  <div>
+                    <h4 className="font-serif font-bold text-foreground text-lg mb-3">Shipping Policy</h4>
+                    <ul className="space-y-2 text-foreground/80">
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary mt-1">•</span>
+                        Free standard shipping on all orders worldwide
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary mt-1">•</span>
+                        Standard delivery: 5–10 business days
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary mt-1">•</span>
+                        Express delivery available (2–3 business days) at checkout
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary mt-1">•</span>
+                        All orders are fully insured during transit
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="border-t border-border pt-6">
+                    <h4 className="font-serif font-bold text-foreground text-lg mb-3">Return Policy</h4>
+                    <ul className="space-y-2 text-foreground/80">
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary mt-1">•</span>
+                        30-day return policy for unused items in original packaging
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary mt-1">•</span>
+                        Free return shipping within the United States
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary mt-1">•</span>
+                        Full refund processed within 5–7 business days
+                      </li>
+                    </ul>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === "reviews" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="max-w-3xl"
+                >
+                  <div className="text-center py-12 space-y-4">
+                    <div className="flex justify-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span key={star} className="text-2xl text-primary">★</span>
+                      ))}
+                    </div>
+                    <p className="text-foreground font-serif text-xl font-bold">Customer Reviews Coming Soon</p>
+                    <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                      We're building our review system. In the meantime, reach out via WhatsApp for customer testimonials.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="rounded-full mt-4"
+                      onClick={() => window.open(whatsappUrl, '_blank')}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2 text-[#25D366]" />
+                      Ask About This Product
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
+
+          {/* Related Products */}
           {related.length > 0 && (
             <div className="mt-24">
               <h2 className="text-3xl font-serif font-bold text-foreground mb-8">
@@ -203,6 +365,9 @@ const ProductDetail = () => {
               </div>
             </div>
           )}
+
+          {/* Recently Viewed */}
+          <RecentlyViewed excludeId={product.id} />
         </div>
       </div>
       <Footer />

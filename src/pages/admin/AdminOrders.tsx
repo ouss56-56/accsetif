@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, ChevronDown } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Search, ChevronDown, Download } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
 
 import { useOrders, useUpdateOrder, Order } from "@/hooks/useOrders";
 
@@ -35,12 +34,35 @@ const AdminOrders = () => {
     return matchSearch && matchStatus;
   });
 
-  const updateStatus = async (id: string, newStatus: any) => {
-    await updateOrder.mutateAsync({ id, status: newStatus });
+  const updateStatus = async (id: string, newStatus: string) => {
+    await updateOrder.mutateAsync({ id, status: newStatus as Order["status"] });
   };
 
   const updateNotes = async (id: string, notes: string) => {
     await updateOrder.mutateAsync({ id, notes });
+  };
+
+  const exportCSV = () => {
+    const headers = ["Order ID", "Customer", "Phone", "Email", "Status", "Total", "Date", "Notes"];
+    const rows = filtered.map((o) => [
+      o.id,
+      o.customer_name,
+      o.customer_phone,
+      o.customer_email || "",
+      o.status,
+      o.total_amount.toFixed(2),
+      new Date(o.created_at).toLocaleString(),
+      (o.notes || "").replace(/[",\n]/g, " "),
+    ]);
+
+    const csv = [headers.join(","), ...rows.map((r) => r.map((c) => `"${c}"`).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `orders_export_${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -56,7 +78,7 @@ const AdminOrders = () => {
             className="pl-10 bg-card border-border"
           />
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap items-center">
           {["All", ...statuses].map((s) => (
             <Button
               key={s}
@@ -68,6 +90,15 @@ const AdminOrders = () => {
               {s}
             </Button>
           ))}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportCSV}
+            className="gap-1.5 border-primary/30 text-primary hover:bg-primary/10 ml-2"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Export CSV
+          </Button>
         </div>
       </div>
 
@@ -95,7 +126,7 @@ const AdminOrders = () => {
                         </span>
                       </div>
                       <p className="text-muted-foreground text-sm mt-1">
-                        {order.customer_name} — {order.order_items?.map(i => i.products?.name).join(", ")}
+                        {order.customer_name} — {order.order_items?.map((item: any) => item.products?.name).join(", ")}
                       </p>
                     </div>
                   </div>

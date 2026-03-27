@@ -119,4 +119,19 @@
   .bg-gradient-card {
     background: linear-gradient(145deg, hsl(220 35% 14%), hsl(220 35% 10%));
   }
+  .bg-gradient-glass {
+    background: linear-gradient(135deg, hsla(220, 35%, 14%, 0.6), hsla(220, 35%, 10%, 0.8));
+    backdrop-filter: blur(16px);
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Safe area for mobile bottom nav */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }

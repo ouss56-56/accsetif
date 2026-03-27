@@ -1,8 +1,10 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Package, ShoppingCart, Users, AlertTriangle, TrendingUp, DollarSign } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useStats } from "@/hooks/useStats";
+import { useOrders } from "@/hooks/useOrders";
 
 const statusColors: Record<string, string> = {
   new: "bg-blue-500/20 text-blue-400",
@@ -13,6 +15,32 @@ const statusColors: Record<string, string> = {
 
 const AdminDashboard = () => {
   const { data: stats, isLoading } = useStats();
+  const { data: orders } = useOrders();
+
+  // Build chart data from orders (last 30 days)
+  const chartData = useMemo(() => {
+    if (!orders) return [];
+    const now = new Date();
+    const days: Record<string, { date: string; revenue: number; orders: number }> = {};
+
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().split("T")[0];
+      const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      days[key] = { date: label, revenue: 0, orders: 0 };
+    }
+
+    orders.forEach((order) => {
+      const key = new Date(order.created_at).toISOString().split("T")[0];
+      if (days[key]) {
+        days[key].revenue += order.total_amount;
+        days[key].orders += 1;
+      }
+    });
+
+    return Object.values(days);
+  }, [orders]);
 
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-[400px]">
@@ -57,6 +85,69 @@ const AdminDashboard = () => {
           </motion.div>
         ))}
       </div>
+
+      {/* Revenue Chart */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        <Card className="bg-gradient-card border-border">
+          <CardHeader>
+            <CardTitle className="font-serif text-xl flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Revenue Overview (30 Days)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(40, 35%, 60%)" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="hsl(40, 35%, 60%)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 20%, 20%)" />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 11, fill: "hsl(220, 15%, 55%)" }}
+                    tickLine={false}
+                    axisLine={false}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "hsl(220, 15%, 55%)" }}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(v) => `$${v}`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(220, 35%, 12%)",
+                      border: "1px solid hsl(220, 20%, 20%)",
+                      borderRadius: "12px",
+                      color: "hsl(220, 20%, 90%)",
+                      fontSize: 13,
+                    }}
+                    formatter={(value: number) => [`$${value.toFixed(2)}`, "Revenue"]}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="hsl(40, 35%, 60%)"
+                    strokeWidth={2}
+                    fill="url(#revenueGradient)"
+                    dot={false}
+                    activeDot={{ r: 5, fill: "hsl(40, 35%, 60%)", stroke: "hsl(220, 35%, 12%)", strokeWidth: 2 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Recent Orders */}

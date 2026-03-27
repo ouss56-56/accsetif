@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Edit, Trash2, Search, Eye, EyeOff } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Eye, EyeOff, CheckSquare, Square, XCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ const AdminProducts = () => {
   const [editProduct, setEditProduct] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const filtered = (products || []).filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -43,6 +44,49 @@ const AdminProducts = () => {
       stock: product.stock > 0 ? 0 : 10,
       status: product.stock > 0 ? "out_of_stock" : "active",
     });
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map((p) => p.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`Delete ${selectedIds.size} selected products?`)) return;
+    for (const id of selectedIds) {
+      await deleteProduct.mutateAsync(id);
+    }
+    setSelectedIds(new Set());
+    toast.success(`${selectedIds.size} products deleted`);
+  };
+
+  const handleBulkToggleStock = async () => {
+    if (selectedIds.size === 0) return;
+    for (const id of selectedIds) {
+      const product = products?.find((p) => p.id === id);
+      if (product) {
+        await updateProduct.mutateAsync({
+          id: product.id,
+          stock: product.stock > 0 ? 0 : 10,
+          status: product.stock > 0 ? "out_of_stock" : "active",
+        });
+      }
+    }
+    setSelectedIds(new Set());
+    toast.success("Stock status updated");
   };
 
   return (
@@ -157,6 +201,62 @@ const AdminProducts = () => {
         </Dialog>
       </div>
 
+      {/* Bulk action toolbar */}
+      <AnimatePresence>
+        {selectedIds.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="flex items-center gap-3 p-3 bg-primary/10 border border-primary/20 rounded-xl">
+              <span className="text-sm font-medium text-foreground">
+                {selectedIds.size} selected
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleBulkToggleStock}
+                className="text-xs gap-1 border-border"
+              >
+                <Eye className="h-3.5 w-3.5" />
+                Toggle Stock
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleBulkDelete}
+                className="text-xs gap-1 border-destructive/30 text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete Selected
+              </Button>
+              <button
+                onClick={() => setSelectedIds(new Set())}
+                className="ml-auto text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <XCircle className="h-4 w-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Select All */}
+      {filtered.length > 0 && (
+        <div className="flex items-center gap-2">
+          <button onClick={toggleSelectAll} className="text-muted-foreground hover:text-primary transition-colors">
+            {selectedIds.size === filtered.length ? (
+              <CheckSquare className="h-5 w-5 text-primary" />
+            ) : (
+              <Square className="h-5 w-5" />
+            )}
+          </button>
+          <span className="text-sm text-muted-foreground">Select All ({filtered.length})</span>
+        </div>
+      )}
+
       {/* Product list */}
       <div className="grid gap-3">
         {filtered.map((product, i) => (
@@ -166,9 +266,20 @@ const AdminProducts = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.05 }}
           >
-            <Card className="bg-gradient-card border-border hover:border-primary/20 transition-colors">
+            <Card className={`bg-gradient-card border-border hover:border-primary/20 transition-colors ${
+              selectedIds.has(product.id) ? "border-primary/40 bg-primary/5" : ""
+            }`}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
+                  {/* Checkbox */}
+                  <button onClick={() => toggleSelect(product.id)} className="text-muted-foreground hover:text-primary transition-colors flex-shrink-0">
+                    {selectedIds.has(product.id) ? (
+                      <CheckSquare className="h-5 w-5 text-primary" />
+                    ) : (
+                      <Square className="h-5 w-5" />
+                    )}
+                  </button>
+
                   <img
                     src={product.image_url}
                     alt={product.name}

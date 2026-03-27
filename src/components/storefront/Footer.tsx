@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Instagram, Facebook, Twitter, Mail, Phone, MapPin } from "lucide-react";
+import { Instagram, Facebook, Twitter, Mail, Phone, MapPin, Heart, ChevronUp, CreditCard } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Footer = () => {
   return (
@@ -33,13 +34,15 @@ const Footer = () => {
               {[
                 { name: "Home", path: "/" },
                 { name: "Shop All", path: "/products" },
+                { name: "Wishlist", path: "/wishlist" },
                 { name: "Contact", path: "/contact" },
               ].map((link) => (
                 <Link
                   key={link.name}
                   to={link.path}
-                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-2 group"
                 >
+                  {link.name === "Wishlist" && <Heart className="h-3 w-3 text-primary/50 group-hover:text-primary transition-colors" />}
                   {link.name}
                 </Link>
               ))}
@@ -82,10 +85,36 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-border mt-12 pt-8 text-center">
+        <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <p className="text-muted-foreground text-sm">
-            © {new Date().getFullYear()} Boutique Chic Accessory. All rights reserved.
+            © {new Date().getFullYear()} Boutique Chic Accessory. Made with <Heart className="h-3 w-3 inline text-primary animate-pulse" /> for Elegance.
           </p>
+          
+          <div className="flex items-center gap-4 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-500">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg border border-border bg-card/50">
+              <CreditCard className="h-4 w-4" />
+              <span className="text-[10px] font-bold uppercase tracking-tight italic">VISA</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg border border-border bg-card/50">
+              <span className="text-[10px] font-bold uppercase tracking-tight italic">Mastercard</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg border border-border bg-card/50">
+              <span className="text-[10px] font-bold uppercase tracking-tight italic">PayPal</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg border border-border bg-card/50">
+              <span className="text-[10px] font-bold uppercase tracking-tight italic">Apple Pay</span>
+            </div>
+          </div>
+
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="text-muted-foreground hover:text-primary gap-2"
+          >
+            Back to Top
+            <ChevronUp className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </footer>

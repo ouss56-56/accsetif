@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ShoppingBag, Search, Settings, LayoutDashboard } from "lucide-react";
+import { Menu, X, ShoppingBag, Search, Settings, LayoutDashboard, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/hooks/useAuth";
 
 const navLinks = [
   { name: "Home", path: "/" },
   { name: "Shop", path: "/products" },
+  { name: "Wishlist", path: "/wishlist" },
   { name: "Contact", path: "/contact" },
 ];
 
@@ -18,6 +20,7 @@ const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { totalItems, setIsOpen: setCartOpen } = useCart();
+  const { totalItems: wishlistCount } = useWishlist();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -83,6 +86,26 @@ const Navbar = () => {
             >
               <Search className="h-5 w-5" />
             </Button>
+
+            {/* Wishlist Button */}
+            <Link to="/wishlist">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative text-foreground/70 hover:text-primary hover:bg-primary/10 rounded-full hidden sm:inline-flex"
+              >
+                <Heart className="h-5 w-5" />
+                {wishlistCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg"
+                  >
+                    {wishlistCount > 9 ? "9+" : wishlistCount}
+                  </motion.span>
+                )}
+              </Button>
+            </Link>
 
             {/* Cart Button */}
             <Button
